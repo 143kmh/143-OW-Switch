@@ -16,8 +16,8 @@
      <TextBlock Text="OVERWATCH / FINLAND" FontSize="10" Foreground="#92929D" Margin="0,7,0,16"/>
      <Border Background="#202026" CornerRadius="10" Padding="4">
       <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
-       <Button x:Name="SoloButton" Content="SOLO" Click="SelectSolo" Height="39" FontWeight="SemiBold" Background="Transparent"/>
-       <Button x:Name="PartyButton" Grid.Column="1" Content="PARTY" Click="SelectParty" Height="39" FontWeight="SemiBold" Background="Transparent"/>
+       <Button x:Name="SoloButton" Content="BLOCK" Click="SelectSolo" Height="39" FontWeight="SemiBold" Background="Transparent"/>
+       <Button x:Name="PartyButton" Grid.Column="1" Content="UNBLOCK" Click="SelectParty" Height="39" FontWeight="SemiBold" Background="Transparent"/>
       </Grid>
      </Border>
      <Border Background="#18181C" CornerRadius="11" Margin="0,13,0,13" Padding="14,13">
@@ -36,7 +36,10 @@
       <Button x:Name="HomeUpdate" Grid.Column="1" Visibility="Collapsed" Background="Transparent" Padding="0,9" Foreground="#B6A4F0" Click="InstallUpdate" FontSize="10"/>
      </Grid>
     </StackPanel>
-    <ScrollViewer x:Name="SettingsPanel" Visibility="Collapsed" VerticalScrollBarVisibility="Auto">
+    <ScrollViewer x:Name="SettingsPanel" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+     <ScrollViewer.Resources>
+      <Style TargetType="ScrollBar" BasedOn="{StaticResource PurpleScrollBar}"/>
+     </ScrollViewer.Resources>
      <StackPanel>
       <Button Content="←  Back" HorizontalAlignment="Left" Background="Transparent" Padding="0,7" Click="CloseSettings"/>
       <TextBlock Text="GENERAL" Foreground="#92929D" Margin="0,12,0,6" FontSize="10"/>
@@ -51,7 +54,7 @@
       <TextBlock Text="GEN1 / FINLAND" Margin="0,0,0,8" FontSize="11"/>
       <TextBlock x:Name="RangesText" FontFamily="Consolas" FontSize="11"/>
       <TextBlock x:Name="RangeCount" Foreground="#92929D" FontSize="10" Margin="0,6,0,8"/>
-      <TextBlock Text="SOLO blocks these ranges for Overwatch only." TextWrapping="Wrap" Foreground="#92929D" FontSize="11" Margin="0,0,0,8"/>
+      <TextBlock Text="BLOCK applies these ranges to Overwatch only." TextWrapping="Wrap" Foreground="#92929D" FontSize="11" Margin="0,0,0,8"/>
       <Button Content="Check rules" Click="CheckRules" Margin="0,4"/>
       <TextBlock x:Name="RulesResult" TextWrapping="Wrap" Foreground="#92929D" FontSize="11" Margin="0,5"/>
       <Button x:Name="RepairButton" Content="Repair" Click="RetryMode" Visibility="Collapsed" Background="#60519B" Margin="0,4"/>

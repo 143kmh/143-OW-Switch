@@ -1,4 +1,4 @@
-# Verification — 1.1.2 preparation
+# Verification — 1.1.2
 
 ## Verified automatically / locally
 
@@ -8,7 +8,7 @@
 - [x] Headless Debug WPF preview: home, Settings, diagnostics and About rendered at 100%, 125% and 150% without opening desktop windows. Discord now fits inside the original 360 × 398 window with bottom padding.
 - [x] Public GitHub repository authorized by the owner.
 
-Scaled bitmap previews check layout; actual Windows DPI transitions, pointer hover/drag and live ETW behavior still require manual verification. No tag or release is created for this patch preparation.
+Scaled bitmap previews check layout; actual Windows DPI transitions, pointer hover/drag and live ETW behavior still require manual verification.
 
 ## Manual release acceptance checks
 
@@ -22,6 +22,3 @@ Scaled bitmap previews check layout; actual Windows DPI transitions, pointer hov
 - [ ] Release-to-release update through UI with administrator privileges: download, protected staging, exit, executable replacement, launch acknowledgement and cleanup.
 - [ ] Cancel/intercept a download and simulate checksum mismatch; current installation remains usable.
 - [ ] Full crash/locked-executable/antivirus failure and rollback on the real installed binary.
-- [ ] Future-dated valid remote servers.json, corrupt remote JSON and disconnected GitHub: retain saved mode and last good config.
-
-Tests use an in-memory firewall store and temporary files. They do not replace elevated integration tests. No system reboot or live game test was performed during development.

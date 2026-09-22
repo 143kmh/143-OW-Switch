@@ -1,5 +1,5 @@
 <Window x:Class="Excluder.App.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
- Title="143 Overwatch Finlad Server Excluder" Width="360" Height="398" WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
+ Title="143 OW Switch" Width="360" Height="398" WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
  WindowStyle="None" AllowsTransparency="True" Background="Transparent" FontFamily="Segoe UI" FontSize="12" UseLayoutRounding="True">
  <Border CornerRadius="14" Background="#111113" BorderBrush="#29292F" BorderThickness="1" Padding="22,15,22,18">
   <Grid>
@@ -13,7 +13,7 @@
    </Grid>
    <Grid Grid.Row="1">
     <StackPanel x:Name="Home">
-     <TextBlock Text="OVERWATCH / FINLAD SERVER EXCLUDER" FontSize="10" Foreground="#92929D" Margin="0,7,0,16"/>
+     <TextBlock Text="OVERWATCH / FINLAND" FontSize="10" Foreground="#92929D" Margin="0,7,0,16"/>
      <Border Background="#202026" CornerRadius="10" Padding="4">
       <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
        <Button x:Name="SoloButton" Content="SOLO" Click="SelectSolo" Height="39" FontWeight="SemiBold" Background="Transparent"/>
@@ -31,7 +31,10 @@
      <Border Height="1" Background="#29292F"/>
      <CheckBox x:Name="StartupToggle" Content="Run on startup" Click="StartupChanged" Margin="0,12,0,5"/>
      <CheckBox x:Name="MinimizedToggle" Content="Start minimized" Click="MinimizedChanged"/>
-     <Button Content="Settings  ↗" HorizontalAlignment="Left" Background="Transparent" Padding="0,9" Foreground="#92929D" Click="OpenSettings"/>
+     <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <Button Content="Settings  ›" HorizontalAlignment="Left" Background="Transparent" Padding="0,9" Foreground="#92929D" Click="OpenSettings"/>
+      <Button x:Name="HomeUpdate" Grid.Column="1" Visibility="Collapsed" Background="Transparent" Padding="0,9" Foreground="#B6A4F0" Click="InstallUpdate" FontSize="10"/>
+     </Grid>
     </StackPanel>
     <ScrollViewer x:Name="SettingsPanel" Visibility="Collapsed" VerticalScrollBarVisibility="Auto">
      <StackPanel>
@@ -40,17 +43,34 @@
       <CheckBox x:Name="StartupSettings" Content="Run on startup" Click="StartupChanged"/>
       <CheckBox x:Name="MinimizedSettings" Content="Start minimized" Click="MinimizedChanged"/>
       <CheckBox x:Name="NotificationsToggle" Content="Show notifications" Click="NotificationsChanged"/>
-      <TextBlock Text="SERVER RULES / GEN1" Foreground="#92929D" Margin="0,19,0,8" FontSize="10"/>
-      <TextBlock Text="34.88.0.0 – 34.88.255.255" FontFamily="Consolas" FontSize="11"/>
-      <TextBlock Text="35.228.0.0 – 35.228.255.255" FontFamily="Consolas" FontSize="11" Margin="0,4,0,6"/>
-      <TextBlock Text="SOLO blocks these ranges for all apps on this PC." TextWrapping="Wrap" Foreground="#92929D" FontSize="11" Margin="0,0,0,8"/>
+      <TextBlock Text="OVERWATCH" Foreground="#92929D" Margin="0,19,0,8" FontSize="10"/>
+      <TextBlock Text="Executable" FontSize="11"/>
+      <TextBlock x:Name="ExecutableText" TextWrapping="Wrap" Foreground="#92929D" FontSize="11" Margin="0,5"/>
+      <Button x:Name="LocateButton" Content="Change" HorizontalAlignment="Left" Background="Transparent" Foreground="#B6A4F0" Padding="0,5" Click="LocateGame"/>
+      <TextBlock Text="SERVER RULES" Foreground="#92929D" Margin="0,19,0,8" FontSize="10"/>
+      <TextBlock Text="GEN1 / FINLAND" Margin="0,0,0,8" FontSize="11"/>
+      <TextBlock x:Name="RangesText" FontFamily="Consolas" FontSize="11"/>
+      <TextBlock x:Name="RangeCount" Foreground="#92929D" FontSize="10" Margin="0,6,0,8"/>
+      <TextBlock Text="SOLO blocks these ranges for Overwatch only." TextWrapping="Wrap" Foreground="#92929D" FontSize="11" Margin="0,0,0,8"/>
       <Button Content="Check rules" Click="CheckRules" Margin="0,4"/>
-      <Button Content="Open Windows Firewall" Click="OpenFirewall" Margin="0,4"/>
-      <Button Content="Remove firewall rules" Click="RemoveRules" Margin="0,4"/>
+      <TextBlock x:Name="RulesResult" TextWrapping="Wrap" Foreground="#92929D" FontSize="11" Margin="0,5"/>
+      <Button x:Name="RepairButton" Content="Repair" Click="RetryMode" Visibility="Collapsed" Background="#60519B" Margin="0,4"/>
+      <Button Content="Open Windows Firewall ↗" Click="OpenFirewall" Style="{StaticResource TextAction}"/>
+      <Button Content="Remove firewall rules" Click="RemoveRules" Style="{StaticResource DestructiveAction}"/>
+      <TextBlock Text="DIAGNOSTICS" Foreground="#92929D" Margin="0,19,0,8" FontSize="10"/>
+      <Button x:Name="DetectButton" Content="Detect current server" Click="DetectServer" Margin="0,4"/>
+      <TextBlock x:Name="DiagnosticText" Text="Detect during a match. Nothing is blocked or changed." TextWrapping="Wrap" Foreground="#92929D" FontSize="11" Margin="0,6"/>
+      <Button x:Name="CopyDiagnosticButton" Content="Copy server info" Click="CopyDiagnostic" Style="{StaticResource TextAction}" Visibility="Collapsed"/>
+      <TextBlock Text="UPDATES" Foreground="#92929D" Margin="0,19,0,8" FontSize="10"/>
+      <TextBlock Text="Version 1.1.0" FontSize="11"/>
+      <CheckBox x:Name="AutomaticUpdatesToggle" Content="Automatically check for updates" Click="AutomaticUpdatesChanged" FontSize="11"/>
+      <TextBlock x:Name="UpdateStatus" Text="Not checked yet" TextWrapping="Wrap" Foreground="#92929D" FontSize="11" Margin="0,6"/>
+      <Button x:Name="CheckUpdatesButton" Content="Check now" Click="CheckUpdates" Margin="0,4"/>
+      <Button x:Name="InstallUpdateButton" Content="Update" Click="InstallUpdate" Visibility="Collapsed" Background="#60519B" Margin="0,4"/>
       <TextBlock Text="ABOUT" Foreground="#92929D" Margin="0,19,0,8" FontSize="10"/>
-      <TextBlock Text="143 Overwatch Finlad Server Excluder" TextWrapping="Wrap"/>
-      <TextBlock Text="Version 1.0.0 · 143 Aim Club" Foreground="#92929D" FontSize="11" Margin="0,5,0,0"/>
-      <TextBlock Text="No telemetry. No game integration." Foreground="#92929D" FontSize="11" Margin="0,5,0,8"/>
+      <TextBlock Text="143 OW Switch"/>
+      <TextBlock Text="Version 1.1.0 · 143 Aim Club" Foreground="#92929D" FontSize="11" Margin="0,5,0,0"/>
+      <TextBlock Text="No telemetry&#10;No game integration" Foreground="#92929D" FontSize="11" Margin="0,5,0,8"/>
      </StackPanel>
     </ScrollViewer>
     <Border x:Name="ErrorPanel" Visibility="Collapsed" Background="#18181C" CornerRadius="10" Padding="18">
@@ -58,6 +78,7 @@
       <TextBlock Text="ACTION REQUIRED" Foreground="#B6A4F0" FontSize="11" Margin="0,0,0,12"/>
       <TextBlock x:Name="ErrorText" TextWrapping="Wrap" FontSize="13"/>
       <Button x:Name="AdminButton" Content="Restart as administrator" Click="RestartAdmin" Margin="0,18,0,0"/>
+      <Button x:Name="ErrorLocate" Content="Locate Overwatch.exe" Click="LocateGame" Visibility="Collapsed" Margin="0,8,0,0"/>
       <Button Content="Retry saved mode" Click="RetryMode" Margin="0,8,0,0"/>
       <Button Content="Back" Click="DismissError" Background="Transparent" Margin="0,8,0,0"/>
      </StackPanel>

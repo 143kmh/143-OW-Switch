@@ -9,6 +9,8 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -19,5 +21,18 @@ jobs:
         run: ./build.ps1
       - uses: actions/upload-artifact@v4
         with:
-          name: 143-Overwatch-Finlad-Server-Excluder-win-x64
-          path: artifacts/*.exe
+          name: 143OWSwitch-win-x64
+          path: |
+            artifacts/143OWSwitch.exe
+            artifacts/143OWSwitch.exe.sha256
+      - name: Publish tagged release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view $env:GITHUB_REF_NAME --json id 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $env:GITHUB_REF_NAME artifacts/143OWSwitch.exe artifacts/143OWSwitch.exe.sha256 --verify-tag --title "143 OW Switch $env:GITHUB_REF_NAME" --notes-file RELEASE_NOTES.md
+            if ($LASTEXITCODE -ne 0) { throw 'Release publishing failed' }
+          }

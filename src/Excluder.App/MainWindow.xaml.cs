@@ -20,13 +20,23 @@ public partial class MainWindow : Window
     private readonly SettingsStore store = new(App.Preview ? Path.Combine(Path.GetTempPath(), "143OWServerSwitch.Preview") : Log.DirectoryPath);
     private readonly FirewallController firewall = new(App.Preview ? new PreviewFirewall() : new WindowsFirewall());
     private Settings settings = new();
+    private readonly CatalogStore catalogStore;
+    private ServerCatalog catalog = ServerCatalog.Bundled();
+    private readonly CancellationTokenSource lifetime = new();
+    private ReleaseInfo? availableRelease;
+    private MatchDiagnostic? diagnostic;
+    private bool checkingUpdates, installingUpdate, detecting;
     private Forms.NotifyIcon? tray;
-    private Forms.ToolStripMenuItem? soloItem, partyItem, startupItem;
+    private Forms.ToolStripMenuItem? soloItem, partyItem, startupItem, updateItem;
     private readonly Icon soloIcon = MakeIcon(true), partyIcon = MakeIcon(false), unknownIcon = MakeIcon(false, true);
     private readonly DispatcherTimer monitor = new() { Interval = TimeSpan.FromSeconds(10) };
     private bool busy, exiting, verified, configLoaded;
 
-    public MainWindow() { InitializeComponent(); Closing += OnClosing; }
+    public MainWindow() { InitializeComponent(); catalogStore = new(store.DirectoryPath); Closing += OnClosing; }
+
+    private bool GameFound => App.Preview || OverwatchLocator.IsValid(settings.OverwatchPath);
+    private Rule[] Desired(Mode mode, Settings? config = null, ServerCatalog? servers = null) => Servers.Desired(mode,
+        (config ?? settings).OverwatchPath!, [(servers ?? catalog).Finland]);
 
     public async void Initialize()
     {
@@ -34,18 +44,31 @@ public partial class MainWindow : Window
         try
         {
             settings = store.Load(); configLoaded = true;
+            if (!settings.StartMinimized) Reveal();
+            catalog = catalogStore.Load(error => Log.Write("Server cache: " + error));
+            if (App.Preview) settings.OverwatchPath = @"C:\Preview\Overwatch.exe";
+            else if (string.IsNullOrWhiteSpace(settings.OverwatchPath)) settings.OverwatchPath = await Task.Run(OverwatchLocator.Find);
             if (!App.Preview)
             {
                 // The registry is authoritative for startup; refresh the path after moving/updating the exe.
                 settings.RunOnStartup = StartupService.Enabled;
                 if (settings.RunOnStartup) StartupService.Set(true);
             }
+            store.Save(settings);
             RestorePosition(); SyncToggles();
         }
         catch (Exception e) { ShowError("Couldn't load settings. Fix config.json before retrying.\n" + e.Message, e); }
         CreateTray();
-        if (!settings.StartMinimized || !configLoaded || (!App.Preview && !App.Elevated)) Reveal();
+        if (!settings.StartMinimized || !configLoaded || !GameFound || (!App.Preview && !App.Elevated)) Reveal();
+        RefreshServerView();
+        if (!App.Preview && App.Elevated)
+        {
+            try { await Task.Run(firewall.DisableUnscoped); }
+            catch (Exception error) { ShowError("Couldn't disable legacy global rules.\n" + error.Message, error); return; }
+        }
         if (configLoaded) await ApplyMode(settings.Mode, false);
+        if (!App.Preview) _ = BackgroundChecks();
+        if (configLoaded && !GameFound && string.IsNullOrWhiteSpace(settings.OverwatchPath)) LocateGame(this, new RoutedEventArgs());
         monitor.Tick += async (_, _) => await RefreshHealth();
         monitor.Start();
     }
@@ -70,56 +93,70 @@ public partial class MainWindow : Window
     }
     private void CreateTray()
     {
-        tray = new Forms.NotifyIcon { Icon = unknownIcon, Text = "143 Server Excluder — checking", Visible = true };
+        tray = new Forms.NotifyIcon { Icon = unknownIcon, Text = "143 OW Switch — checking", Visible = true };
         var menu = new Forms.ContextMenuStrip { BackColor = System.Drawing.Color.FromArgb(24,24,28), ForeColor = System.Drawing.Color.White, ShowImageMargin = false };
-        menu.Items.Add(new Forms.ToolStripMenuItem("143 OW Server Switch") { Enabled = false });
+        menu.Items.Add(new Forms.ToolStripMenuItem("143 OW Switch") { Enabled = false });
         menu.Items.Add(new Forms.ToolStripSeparator());
-        soloItem = new Forms.ToolStripMenuItem("SOLO — Block GEN1", null, async (_, _) => await ApplyMode(Mode.Solo));
-        partyItem = new Forms.ToolStripMenuItem("PARTY — Allow GEN1", null, async (_, _) => await ApplyMode(Mode.Party));
+        soloItem = new Forms.ToolStripMenuItem("SOLO", null, async (_, _) => await ApplyMode(Mode.Solo));
+        partyItem = new Forms.ToolStripMenuItem("PARTY", null, async (_, _) => await ApplyMode(Mode.Party));
         menu.Items.Add(soloItem); menu.Items.Add(partyItem); menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add("Open", null, (_, _) => Reveal());
         startupItem = new Forms.ToolStripMenuItem("Run on startup", null, (_, _) => SetStartup(!settings.RunOnStartup));
-        menu.Items.Add(startupItem); menu.Items.Add(new Forms.ToolStripSeparator());
-        menu.Items.Add("Exit", null, (_, _) => { if (!busy) Exit(); });
+        updateItem = new Forms.ToolStripMenuItem("Check for updates", null, async (_, _) =>
+        { if (availableRelease != null) InstallUpdate(this, new RoutedEventArgs()); else { Reveal(); OpenSettings(this, new RoutedEventArgs()); await CheckForUpdates(); } });
+        menu.Items.Add(updateItem); menu.Items.Add(new Forms.ToolStripSeparator());
+        menu.Items.Add("Exit", null, (_, _) => { if (!busy && !installingUpdate) Exit(); });
         tray.ContextMenuStrip = menu;
         tray.MouseClick += (_, e) => { if (e.Button == Forms.MouseButtons.Left) Reveal(); };
         SyncToggles();
     }
-    private async Task ApplyMode(Mode mode, bool notify = true)
+    private async Task<bool> ApplyMode(Mode mode, bool notify = true, Settings? candidate = null, ServerCatalog? serverUpdate = null)
     {
-        if (busy) return;
-        if (!configLoaded) { ShowError("Settings have not loaded. Fix config.json and retry."); return; }
+        if (busy) return false;
+        if (!configLoaded) { ShowError("Settings have not loaded. Fix config.json and retry."); return false; }
         if (!App.Preview && !App.Elevated)
-        { ShowError("Administrator permission is required to modify Windows Firewall."); return; }
+        { ShowError("Administrator permission is required to modify Windows Firewall."); return false; }
+        if (!App.Preview && !OverwatchLocator.IsValid((candidate ?? settings).OverwatchPath))
+        { verified = false; Render(false); ShowError("Overwatch executable not found."); return false; }
         SetBusy(true);
-        var next = settings with { Mode = mode };
+        var next = (candidate ?? settings) with { Mode = mode };
         try
         {
-            await Task.Run(() => firewall.Apply(mode, () => store.Save(next)));
+            await Task.Run(() => firewall.Apply(Desired(mode, next, serverUpdate), () =>
+            {
+                if (serverUpdate != null) catalogStore.Save(serverUpdate);
+                else store.Save(next);
+            }));
+            if (serverUpdate != null) catalog = serverUpdate;
             settings = next; verified = true;
+            RulesResult.Text = ""; RepairButton.Visibility = Visibility.Collapsed;
+            RefreshServerView();
             ErrorPanel.Visibility = Visibility.Collapsed;
             var active = await Task.Run(() => firewall.IsActive);
             Render(active);
             Log.Write("Mode changed: " + mode);
             if (notify && settings.Notifications && tray != null)
-                tray.ShowBalloonTip(2000, "143 OW Server Switch", active || mode == Mode.Party
-                    ? mode == Mode.Solo ? "SOLO enabled. GEN1 ranges are blocked." : "PARTY enabled. App rules are disabled."
+                tray.ShowBalloonTip(2000, "143 OW Switch", active || mode == Mode.Party
+                    ? mode == Mode.Solo ? "SOLO enabled. GEN1 is blocked." : "PARTY enabled. Normal matchmaking restored."
                     : "SOLO rules saved, but Windows Firewall or local policy is inactive.", Forms.ToolTipIcon.Info);
+            return true;
         }
         catch (Exception e)
         {
             verified = false; Render(false);
             ShowError("Couldn't update Windows Firewall.\n" + e.Message, e);
+            return false;
         }
         finally { SetBusy(false); }
     }
     private async Task RefreshHealth()
     {
-        if (busy || !configLoaded) return;
+        if (busy || !configLoaded || installingUpdate) return;
+        if (!GameFound) { verified = false; Render(false); RefreshServerView(); return; }
         SetBusy(true);
         try
         {
-            var health = await Task.Run(() => (Matches: firewall.Check(settings.Mode), Active: firewall.IsActive));
+            var health = await Task.Run(() => (Matches: firewall.Check(Desired(settings.Mode)), Active: firewall.IsActive));
             verified = health.Matches; Render(health.Active);
         }
         catch (Exception e) { verified = false; Render(false); Log.Write(e.ToString()); }
@@ -130,13 +167,17 @@ public partial class MainWindow : Window
         bool solo = settings.Mode == Mode.Solo;
         Status.Text = !verified ? "CHECK RULES" : solo && !active ? "NOT ACTIVE" : solo ? "BLOCKED" : "AVAILABLE";
         Subtitle.Text = !verified ? "Rules differ from your saved mode" : solo ? active ? "Finland server excluded" : "Enable Windows Firewall to block GEN1" : "Normal matchmaking";
-        Health.Text = App.Preview ? "PREVIEW · no system changes" : !verified ? "Click SOLO or PARTY to repair" : !active ? "Firewall off or managed by policy" : solo ? "Firewall active" : "App blocking disabled";
+        Health.Text = !verified ? "Click SOLO or PARTY to repair" : !active ? "Firewall off or managed by policy" : solo ? "Firewall active" : "App blocking disabled";
+        if (!GameFound) { Status.Text = "LOCATE GAME"; Subtitle.Text = "Overwatch executable not found."; Health.Text = "Select Overwatch.exe in Settings"; }
+#if DEBUG
+        if (App.Preview) Health.Text = "PREVIEW · no system changes";
+#endif
         Animate(SoloButton, verified && solo ? "#60519B" : "#202026");
         Animate(PartyButton, verified && !solo ? "#60519B" : "#202026");
         if (tray != null)
         {
             tray.Icon = !verified || (solo && !active) ? unknownIcon : solo ? soloIcon : partyIcon;
-            tray.Text = "143 OW Server Switch — " + (!verified ? "CHECK RULES" : solo && !active ? "NOT ACTIVE" : solo ? "SOLO" : "PARTY");
+            tray.Text = "143 OW Switch — " + (!verified ? "CHECK RULES" : solo && !active ? "NOT ACTIVE" : solo ? "SOLO" : "PARTY");
             soloItem!.Checked = verified && solo; partyItem!.Checked = verified && !solo;
         }
     }
@@ -159,6 +200,7 @@ public partial class MainWindow : Window
     {
         if (error != null) Log.Write(error.ToString());
         ErrorText.Text = message; AdminButton.Visibility = App.Elevated || App.Preview ? Visibility.Collapsed : Visibility.Visible;
+        ErrorLocate.Visibility = GameFound ? Visibility.Collapsed : Visibility.Visible;
         ErrorPanel.Visibility = Visibility.Visible; Reveal();
     }
     private void SyncToggles()
@@ -166,6 +208,7 @@ public partial class MainWindow : Window
         StartupToggle.IsChecked = StartupSettings.IsChecked = settings.RunOnStartup;
         MinimizedToggle.IsChecked = MinimizedSettings.IsChecked = settings.StartMinimized;
         NotificationsToggle.IsChecked = settings.Notifications;
+        AutomaticUpdatesToggle.IsChecked = settings.AutomaticUpdates;
         if (startupItem != null) startupItem.Checked = settings.RunOnStartup;
     }
     private void SavePreference(Settings next)
@@ -214,8 +257,17 @@ public partial class MainWindow : Window
     }
     private async void CheckRules(object sender, RoutedEventArgs e)
     {
-        await RefreshHealth();
-        MessageBox.Show(this, verified ? "Everything looks good.\n" + Health.Text : "Rules need repair. Click SOLO or PARTY to restore them.", "Check rules", MessageBoxButton.OK, MessageBoxImage.Information);
+        if (busy) return;
+        if (!GameFound) { RulesResult.Text = "Overwatch executable not found."; return; }
+        SetBusy(true);
+        try
+        {
+            int count = await Task.Run(() => firewall.RepairCount(Desired(settings.Mode)));
+            RulesResult.Text = count == 0 ? "Everything looks good." : $"{count} firewall rule{(count == 1 ? " needs" : "s need")} repair.";
+            RepairButton.Visibility = count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        }
+        catch (Exception error) { Log.Write(error.ToString()); RulesResult.Text = "Couldn't check rules."; }
+        finally { SetBusy(false); }
     }
     private void OpenFirewall(object sender, RoutedEventArgs e)
     {
@@ -224,7 +276,7 @@ public partial class MainWindow : Window
     }
     private async void RemoveRules(object sender, RoutedEventArgs e)
     {
-        if (busy || MessageBox.Show(this, "Remove this app's firewall rules, disable its startup entry and exit?\nYour other firewall rules will remain. Rules are recreated if you launch the app again.", "Remove firewall rules", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        if (busy || !ConfirmRemoval()) return;
         SetBusy(true);
         try
         {
@@ -244,7 +296,7 @@ public partial class MainWindow : Window
     private void OnClosing(object? sender, CancelEventArgs e) { if (!exiting) { e.Cancel = true; SavePosition(); Hide(); } }
     private void Exit()
     {
-        SavePosition(); exiting = true; monitor.Stop();
+        SavePosition(); exiting = true; monitor.Stop(); lifetime.Cancel(); ServerDiagnostics.Stop();
         if (tray != null) { tray.Visible = false; tray.Dispose(); }
         soloIcon.Dispose(); partyIcon.Dispose(); unknownIcon.Dispose();
         System.Windows.Application.Current.Shutdown();

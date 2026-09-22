@@ -15,14 +15,14 @@ public sealed class WindowsFirewall : IFirewallStore
         dynamic policy = Create("HNetCfg.FwPolicy2");
         dynamic rules = policy.Rules;
         var result = new List<Rule>();
-        var names = Servers.Desired(Mode.Party).Select(r => r.Name).ToHashSet();
         try
         {
             foreach (dynamic r in rules)
             {
                 try
                 {
-                    if (names.Contains((string)r.Name))
+                    if ((string?)r.Grouping == Servers.RuleGroup || Servers.LegacyNames.Contains((string)r.Name) ||
+                        ((string)r.Name).StartsWith("143 OW Switch — ", StringComparison.Ordinal))
                     {
                         int protocol = r.Protocol;
                         object? interfaces = r.Interfaces;

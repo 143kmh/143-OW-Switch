@@ -23,10 +23,13 @@ public partial class App : System.Windows.Application
         catch (Win32Exception e) when (e.NativeErrorCode == 1223) { return false; }
         catch (Exception e) { Log.Write(e.ToString()); MessageBox.Show("Could not restart as administrator.\n" + e.Message); return false; }
     }
-    protected override void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+#if DEBUG
         Preview = e.Args.Contains("--preview");
+#endif
+        if (e.Args is ["--install-update", var stage]) { await UpdateInstaller.Install(stage); Shutdown(); return; }
         if (!Preview && !Elevated && Elevate(e.Args.Contains("--startup"))) { Shutdown(); return; }
         var id = WindowsIdentity.GetCurrent().User!.Value;
         var suffix = Preview ? ".Preview" : Elevated ? ".Admin" : ".User";
@@ -44,9 +47,12 @@ public partial class App : System.Windows.Application
             args.Handled = true;
         };
         window.Initialize();
+        if (e.Args is ["--update-receipt", var receipt]) _ = UpdateInstaller.AcknowledgeAndClean(receipt);
+        if (e.Args.Contains("--update-failed")) MessageBox.Show("Couldn't install update. The previous version was restored.", "143 OW Switch");
     }
     protected override void OnExit(ExitEventArgs e)
     {
+        ServerDiagnostics.Stop();
         listener?.Unregister(null); activation?.Dispose(); instance?.Dispose();
         base.OnExit(e);
     }

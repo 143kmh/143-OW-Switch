@@ -1,28 +1,26 @@
-# Release verification
+# Verification — 1.1.0
 
-## Verified during development
+## Verified automatically / locally
 
-- [x] Release build and self-contained win-x64 publish.
-- [x] Core regression tests: create, toggle, repair, duplicates, rollback, ownership, cleanup, config, drift.
-- [x] Published executable launches in preview mode; main window is visually inspected.
+- [x] Core regression suite: 22 tests, including scoped rules, migration, changed game path, repair counts, malformed server JSON, CIDR, offline cache, semantic versions and checksum failures.
+- [x] Real filesystem update swap: new file and old backup; failed startup restores old file; checksum mismatch leaves old file unchanged.
+- [x] Windows build and self-contained x64 publish.
+- [x] Debug preview launches; shortened title and main-screen composition inspected.
+- [x] Public GitHub repository authorized by the owner.
 
-## Requires interactive elevated Windows testing
+Visual automation of Settings was stopped by the user with Escape. No further UI automation was performed afterwards.
 
-Run these with no existing application rules, or note their state before testing. Use Settings → Remove firewall rules afterwards if the app is not intended to remain installed.
+## Manual release acceptance checks
 
-- [ ] First launch → UAC → PARTY, exactly two disabled outbound Block rules.
-- [ ] SOLO enables both; PARTY disables both; no unrelated rules changed.
-- [ ] Close/reopen and full exit/restart preserve selected mode.
-- [ ] Delete one owned rule or change its IP; restarting repairs it.
-- [ ] Cancel UAC; error panel and administrator retry work.
-- [ ] Disable or manually change one rule; status changes within 10 seconds.
-- [ ] Start a second instance; only one elevated instance remains and window opens.
-- [ ] Tray left/right clicks, toggles, close to tray and Exit work.
-- [ ] Enable startup; sign out/in; UAC appears and the saved mode is restored.
-- [ ] Start minimized hides main window after UAC; startup disabled removes only the app entry.
-- [ ] Windows 10 and 11, DPI 100%, 125%, 150%, 200%; move between monitors.
-- [ ] Test startup after replacing or moving executable.
-- [ ] Settings cleanup removes managed rules and startup entry, then exits.
-- [ ] Confirm user-supplied ranges produce the intended matchmaking behavior.
+- [ ] Real UAC: confirm and cancel; missing game path picker; moved/deleted executable.
+- [ ] Inspect both effective firewall rules: ApplicationName equals selected Overwatch.exe, outbound Block, correct ranges/profiles/protocol/mode.
+- [ ] Migrate from 1.0 SOLO: old global rules disabled before path selection; other applications remain unaffected.
+- [ ] Enable SOLO/PARTY during a real match and confirm intended matchmaking effect.
+- [ ] Tray close, menu, repeated launch, startup after Windows login and DPI 100/125/150/200% on Windows 10/11.
+- [ ] Observe a real Overwatch match through ETW; verify remote candidate and Google Cloud region. Confirm voice/chat cannot be mistaken for certainty.
+- [ ] Release-to-release update through UI with administrator privileges: download, protected staging, exit, executable replacement, launch acknowledgement and cleanup.
+- [ ] Cancel/intercept a download and simulate checksum mismatch; current installation remains usable.
+- [ ] Full crash/locked-executable/antivirus failure and rollback on the real installed binary.
+- [ ] Future-dated valid remote servers.json, corrupt remote JSON and disconnected GitHub: retain saved mode and last good config.
 
-No system reboot or elevated firewall mutation was performed during automated development verification.
+Tests use an in-memory firewall store and temporary files. They do not replace elevated integration tests. No system reboot or live game test was performed during development.

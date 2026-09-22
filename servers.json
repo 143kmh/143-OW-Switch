@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-09-22",
+  "servers": [
+    {
+      "id": "gen1",
+      "name": "GEN1",
+      "location": "Finland",
+      "ranges": ["34.88.0.0/16", "35.228.0.0/16"]
+    }
+  ]
+}

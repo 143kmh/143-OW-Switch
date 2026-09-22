@@ -16,6 +16,14 @@
         </ControlTemplate.Triggers>
       </ControlTemplate></Setter.Value></Setter>
     </Style>
+    <Style x:Key="TextAction" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+      <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="#92929D"/>
+      <Setter Property="HorizontalAlignment" Value="Left"/><Setter Property="Padding" Value="0,9"/>
+    </Style>
+    <Style x:Key="DestructiveAction" TargetType="Button" BasedOn="{StaticResource TextAction}">
+      <Setter Property="Foreground" Value="#B59C9F"/>
+      <Style.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter Property="Foreground" Value="#CC8E96"/></Trigger></Style.Triggers>
+    </Style>
     <Style TargetType="CheckBox">
       <Setter Property="Foreground" Value="#92929D"/><Setter Property="Cursor" Value="Hand"/><Setter Property="Margin" Value="0,7"/>
       <Setter Property="HorizontalContentAlignment" Value="Stretch"/>

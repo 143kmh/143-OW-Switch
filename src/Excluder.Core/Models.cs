@@ -4,20 +4,25 @@ using System.Text.Json.Serialization;
 namespace Excluder.Core;
 
 public enum Mode { Party, Solo }
-public sealed record ServerGroup(string Id, string Name, string Description, bool Enabled, string[] Ranges);
 public static class Servers
 {
     public const string RuleGroup = "143OWServerSwitch.Managed.v1";
-    public static readonly ServerGroup Gen1 = new("GEN1", "Finland", "Finland server excluded", true,
-        ["34.88.0.0-34.88.255.255", "35.228.0.0-35.228.255.255"]);
-    public static Rule[] Desired(Mode mode) => Gen1.Ranges.Select((range, index) => new Rule(
-        "143 OW Server Switch — GEN1 " + (index == 0 ? "34.88" : "35.228"), range, mode == Mode.Solo)).ToArray();
+    public static readonly string[] LegacyNames = ["143 OW Server Switch — GEN1 34.88", "143 OW Server Switch — GEN1 35.228"];
+    public static Rule[] Desired(Mode mode, string executable, IEnumerable<ServerDefinition> servers)
+    {
+        if (string.IsNullOrWhiteSpace(executable) || !Path.IsPathFullyQualified(executable) ||
+            !Path.GetFileName(executable).Equals("Overwatch.exe", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("Locate Overwatch.exe before creating firewall rules.");
+        return servers.SelectMany(server => server.Ranges.Select(range => new Rule(
+            $"143 OW Switch — {server.Id} — {range}", Cidr.Parse(range).ToString(), mode == Mode.Solo,
+            Application: Path.GetFullPath(executable)))).ToArray();
+    }
 }
 
 public sealed record Rule(string Name, string RemoteAddresses, bool Enabled,
     string Group = Servers.RuleGroup, int Direction = 2, int Action = 0, int Profiles = int.MaxValue,
     int Protocol = 256, string Application = "", string Service = "", string LocalAddresses = "*",
-    string InterfaceTypes = "All", string Description = "Managed by 143 Overwatch Finlad Server Excluder.",
+    string InterfaceTypes = "All", string Description = "Managed by 143 OW Switch.",
     string LocalPorts = "", string RemotePorts = "", string IcmpTypes = "", string Interfaces = "", bool EdgeTraversal = false);
 
 public interface IFirewallStore
@@ -30,19 +35,26 @@ public interface IFirewallStore
 
 public sealed class FirewallController(IFirewallStore store)
 {
-    public bool Check(Mode mode) => Equivalent(store.Read(), Servers.Desired(mode));
+    public bool Check(Rule[] desired) => Equivalent(store.Read(), desired);
+    public int RepairCount(Rule[] desired)
+    {
+        var actual = store.Read();
+        return desired.Count(d => actual.Count(a => a.Name == d.Name) != 1 || !actual.Any(a => Same(a, d))) +
+            actual.Count(a => !desired.Any(d => d.Name == a.Name));
+    }
     public bool IsActive => store.IsFirewallActive();
 
-    public void Apply(Mode mode, Action persist)
+    public void Apply(Rule[] desired, Action persist)
     {
         var before = store.Read().ToArray();
-        var desired = Servers.Desired(mode);
-        if (before.Any(r => r.Group != Servers.RuleGroup && r.Group != ""))
+        if (desired.Length == 0 || desired.Any(r => string.IsNullOrWhiteSpace(r.Application)))
+            throw new InvalidOperationException("Refusing unscoped or empty firewall configuration.");
+        if (before.Any(r => r.Group != Servers.RuleGroup && !(r.Group == "" && Servers.LegacyNames.Contains(r.Name))))
             throw new InvalidOperationException("A rule with an app rule name belongs to another group. Rename it in Windows Firewall first.");
         try
         {
             if (!Equivalent(before, desired)) Replace(desired);
-            if (!Check(mode)) throw new InvalidOperationException("Windows Firewall did not retain the requested rules.");
+            if (!Check(desired)) throw new InvalidOperationException("Windows Firewall did not retain the requested rules.");
             persist();
         }
         catch (Exception original)
@@ -51,6 +63,21 @@ public sealed class FirewallController(IFirewallStore store)
             catch (Exception rollback) { throw new AggregateException("Update failed and rollback failed. Check Windows Firewall.", original, rollback); }
             throw;
         }
+    }
+
+    // Migration must not leave v1 global blocking active while the game path is being located.
+    public void DisableUnscoped()
+    {
+        var before = store.Read().ToArray();
+        var unsafeRules = before.Where(r => r.Group == Servers.RuleGroup && r.Application.Length == 0 && r.Enabled).ToArray();
+        if (unsafeRules.Length == 0) return;
+        foreach (var rule in unsafeRules)
+        {
+            store.Remove(rule.Name);
+            store.Add(rule with { Enabled = false });
+        }
+        if (store.Read().Any(r => r.Group == Servers.RuleGroup && r.Application.Length == 0 && r.Enabled))
+            throw new InvalidOperationException("Could not disable legacy global rules.");
     }
 
     public void RemoveOwned()
@@ -69,13 +96,11 @@ public sealed class FirewallController(IFirewallStore store)
         foreach (var rule in rules) store.Add(rule);
     }
 
-    private static string Normalize(string address) => address
-        .Replace("34.88.0.0/255.255.0.0", Servers.Gen1.Ranges[0]).Replace("34.88.0.0/16", Servers.Gen1.Ranges[0])
-        .Replace("35.228.0.0/255.255.0.0", Servers.Gen1.Ranges[1]).Replace("35.228.0.0/16", Servers.Gen1.Ranges[1]);
-
+    private static bool Same(Rule a, Rule d) =>
+        (a with { RemoteAddresses = Cidr.NormalizeFirewall(a.RemoteAddresses), Description = d.Description,
+            Application = a.Application.Equals(d.Application, StringComparison.OrdinalIgnoreCase) ? d.Application : a.Application }) == d;
     public static bool Equivalent(IReadOnlyList<Rule> actual, IReadOnlyList<Rule> desired) =>
-        actual.Count == desired.Count && desired.All(d => actual.Count(a =>
-            (a with { RemoteAddresses = Normalize(a.RemoteAddresses), Description = d.Description }) == d) == 1);
+        actual.Count == desired.Count && desired.All(d => actual.Count(a => Same(a, d)) == 1);
 }
 
 public sealed record Settings
@@ -84,6 +109,8 @@ public sealed record Settings
     public bool RunOnStartup { get; set; }
     public bool StartMinimized { get; set; }
     public bool Notifications { get; set; } = true;
+    public string? OverwatchPath { get; set; }
+    public bool AutomaticUpdates { get; set; } = true;
     public double? WindowLeft { get; set; }
     public double? WindowTop { get; set; }
 }

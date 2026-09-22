@@ -151,12 +151,13 @@ var tests = new (string Name, Action Run)[]
     })
 };
 var failed = 0;
-foreach (var test in tests)
+var allTests = tests.Concat(DiagnosticTests.Cases).ToArray();
+foreach (var test in allTests)
 {
     try { test.Run(); Console.WriteLine("PASS " + test.Name); }
     catch (Exception error) { failed++; Console.WriteLine("FAIL " + test.Name + ": " + error.Message); }
 }
-Console.WriteLine($"{tests.Length - failed}/{tests.Length} passed");
+Console.WriteLine($"{allTests.Length - failed}/{allTests.Length} passed");
 return failed == 0 ? 0 : 1;
 static void Assert(bool condition) { if (!condition) throw new Exception("Assertion failed"); }
 static void ExpectFailure(Action action) { try { action(); } catch { return; } throw new Exception("Expected failure"); }

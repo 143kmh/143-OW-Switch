@@ -101,12 +101,15 @@ public partial class MainWindow
         if (detecting || !GameFound) { if (!GameFound) DiagnosticText.Text = "Locate Overwatch.exe first."; return; }
         if (App.Preview) { DiagnosticText.Text = "Live diagnostics are disabled in UI preview."; return; }
         detecting = true; DetectButton.IsEnabled = false; CopyDiagnosticButton.Visibility = Visibility.Collapsed;
+        DiagnosticHeading.Visibility = DiagnosticDetails.Visibility = Visibility.Collapsed;
         DiagnosticText.Text = "Listening for 5 seconds… Keep the match running.";
         try
         {
             diagnostic = await ServerDiagnostics.Detect(settings.OverwatchPath!, catalog, lifetime.Token);
-            DiagnosticText.Text = diagnostic.Candidate == null ? diagnostic.Note :
-                $"CURRENT MATCH · CANDIDATE\n\n{diagnostic.Server}\n{diagnostic.Candidate.Address}\n\n{diagnostic.Provider}\n{diagnostic.Region}\n{diagnostic.Location}\n\n{diagnostic.Note}";
+            DiagnosticHeading.Text = diagnostic.Heading;
+            DiagnosticDetails.Text = diagnostic.Details;
+            DiagnosticText.Text = diagnostic.Explanation;
+            DiagnosticHeading.Visibility = DiagnosticDetails.Visibility = diagnostic.Candidate == null ? Visibility.Collapsed : Visibility.Visible;
             CopyDiagnosticButton.Visibility = diagnostic.Candidate == null ? Visibility.Collapsed : Visibility.Visible;
         }
         catch (OperationCanceledException) { }

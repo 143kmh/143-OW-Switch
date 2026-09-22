@@ -129,7 +129,7 @@ public partial class MainWindow : Window
             }));
             if (serverUpdate != null) catalog = serverUpdate;
             settings = next; verified = true;
-            RulesResult.Text = ""; RepairButton.Visibility = Visibility.Collapsed;
+            RulesResult.Text = ""; RulesResult.Visibility = RepairButton.Visibility = Visibility.Collapsed;
             RefreshServerView();
             ErrorPanel.Visibility = Visibility.Collapsed;
             var active = await Task.Run(() => firewall.IsActive);
@@ -258,6 +258,7 @@ public partial class MainWindow : Window
     private async void CheckRules(object sender, RoutedEventArgs e)
     {
         if (busy) return;
+        RulesResult.Visibility = Visibility.Visible;
         if (!GameFound) { RulesResult.Text = "Overwatch executable not found."; return; }
         SetBusy(true);
         try

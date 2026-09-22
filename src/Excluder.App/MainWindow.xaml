@@ -20,7 +20,7 @@
        <Button x:Name="PartyButton" Grid.Column="1" Content="UNBLOCK" Click="SelectParty" Height="39" FontWeight="SemiBold" Background="Transparent"/>
       </Grid>
      </Border>
-     <Border Background="#18181C" CornerRadius="11" Margin="0,13,0,13" Padding="14,13">
+     <Border Background="#18181C" CornerRadius="11" Margin="0,11,0,11" Padding="14,10">
       <StackPanel HorizontalAlignment="Center">
        <TextBlock Text="GEN1 / FINLAND" HorizontalAlignment="Center" Foreground="#92929D" FontSize="10"/>
        <TextBlock x:Name="Status" Text="CHECKING" FontSize="29" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,2"/>
@@ -29,18 +29,18 @@
       </StackPanel>
      </Border>
      <Border Height="1" Background="#29292F"/>
-     <CheckBox x:Name="StartupToggle" Content="Run on startup" Click="StartupChanged" Margin="0,12,0,5"/>
-     <CheckBox x:Name="MinimizedToggle" Content="Start minimized" Click="MinimizedChanged"/>
+     <CheckBox x:Name="StartupToggle" Content="Run on startup" Click="StartupChanged" Margin="0,10,0,5"/>
+     <CheckBox x:Name="MinimizedToggle" Content="Start minimized" Click="MinimizedChanged" Margin="0,5"/>
      <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-      <Button Content="Settings  ›" HorizontalAlignment="Left" Background="Transparent" Padding="0,9" Foreground="#92929D" Click="OpenSettings"/>
+      <Button Content="Settings  ›" Style="{StaticResource TextAction}" Padding="0,8" Click="OpenSettings"/>
       <Button x:Name="HomeUpdate" Grid.Column="1" Visibility="Collapsed" Background="Transparent" Padding="0,9" Foreground="#B6A4F0" Click="InstallUpdate" FontSize="10"/>
      </Grid>
-     <Button Click="OpenDiscord" Background="Transparent" HorizontalAlignment="Left" Padding="0,3" ToolTip="Join 143 Aim Club on Discord">
+     <Button Click="OpenDiscord" Style="{StaticResource DiscordAction}" ToolTip="Join 143 Aim Club on Discord">
       <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
        <Viewbox Width="14" Height="14" Margin="0,0,6,0">
-        <Path Fill="#92929D" Stretch="Uniform" Data="M20.317,4.37 C18.846,3.69 17.264,3.2 15.432,2.855 C15.22,3.23 14.987,3.72 14.823,4.104 C12.978,3.828 11.143,3.828 9.336,4.104 C9.172,3.711 8.941,3.23 8.72,2.855 C6.889,3.2 5.306,3.69 3.835,4.37 C0.718,8.758 -0.135,13.292 0.283,17.77 C0.285,17.792 0.296,17.812 0.314,17.826 C2.367,19.334 4.355,20.249 6.307,20.856 C6.344,20.867 6.383,20.856 6.407,20.828 C6.869,20.197 7.28,19.532 7.633,18.833 C7.654,18.792 7.635,18.743 7.592,18.727 C6.94,18.479 6.318,18.177 5.72,17.834 C5.669,17.805 5.665,17.735 5.713,17.706 C5.839,17.612 5.965,17.514 6.085,17.415 C6.107,17.397 6.138,17.393 6.163,17.405 C10.091,19.198 14.343,19.198 18.224,17.405 C18.25,17.393 18.281,17.397 18.302,17.414 C18.422,17.513 18.548,17.612 18.675,17.706 C18.723,17.735 18.719,17.805 18.668,17.833 C18.071,18.176 17.449,18.477 16.795,18.725 C16.753,18.741 16.734,18.79 16.755,18.832 C17.115,19.53 17.527,20.195 17.98,20.825 C18.004,20.857 18.045,20.868 18.083,20.854 C20.044,20.247 22.033,19.332 24.086,17.825 C24.104,17.812 24.115,17.792 24.117,17.77 C24.617,12.593 23.279,8.096 20.568,4.436 C20.554,4.417 20.337,4.379 20.317,4.37 Z M8.02,15.331 C6.838,15.331 5.863,14.245 5.863,12.912 C5.863,11.579 6.819,10.493 8.02,10.493 C9.231,10.493 10.196,11.589 10.177,12.912 C10.177,14.245 9.222,15.331 8.02,15.331 Z M15.995,15.331 C14.812,15.331 13.838,14.245 13.838,12.912 C13.838,11.579 14.793,10.493 15.995,10.493 C17.205,10.493 18.17,11.589 18.151,12.912 C18.151,14.245 17.205,15.331 15.995,15.331 Z"/>
+        <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" SnapsToDevicePixels="True" Stretch="Uniform" Data="M20.317,4.37 C18.846,3.69 17.264,3.2 15.432,2.855 C15.22,3.23 14.987,3.72 14.823,4.104 C12.978,3.828 11.143,3.828 9.336,4.104 C9.172,3.711 8.941,3.23 8.72,2.855 C6.889,3.2 5.306,3.69 3.835,4.37 C0.718,8.758 -0.135,13.292 0.283,17.77 C0.285,17.792 0.296,17.812 0.314,17.826 C2.367,19.334 4.355,20.249 6.307,20.856 C6.344,20.867 6.383,20.856 6.407,20.828 C6.869,20.197 7.28,19.532 7.633,18.833 C7.654,18.792 7.635,18.743 7.592,18.727 C6.94,18.479 6.318,18.177 5.72,17.834 C5.669,17.805 5.665,17.735 5.713,17.706 C5.839,17.612 5.965,17.514 6.085,17.415 C6.107,17.397 6.138,17.393 6.163,17.405 C10.091,19.198 14.343,19.198 18.224,17.405 C18.25,17.393 18.281,17.397 18.302,17.414 C18.422,17.513 18.548,17.612 18.675,17.706 C18.723,17.735 18.719,17.805 18.668,17.833 C18.071,18.176 17.449,18.477 16.795,18.725 C16.753,18.741 16.734,18.79 16.755,18.832 C17.115,19.53 17.527,20.195 17.98,20.825 C18.004,20.857 18.045,20.868 18.083,20.854 C20.044,20.247 22.033,19.332 24.086,17.825 C24.104,17.812 24.115,17.792 24.117,17.77 C24.617,12.593 23.279,8.096 20.568,4.436 C20.554,4.417 20.337,4.379 20.317,4.37 Z M8.02,15.331 C6.838,15.331 5.863,14.245 5.863,12.912 C5.863,11.579 6.819,10.493 8.02,10.493 C9.231,10.493 10.196,11.589 10.177,12.912 C10.177,14.245 9.222,15.331 8.02,15.331 Z M15.995,15.331 C14.812,15.331 13.838,14.245 13.838,12.912 C13.838,11.579 14.793,10.493 15.995,10.493 C17.205,10.493 18.17,11.589 18.151,12.912 C18.151,14.245 17.205,15.331 15.995,15.331 Z"/>
        </Viewbox>
-       <TextBlock Text="discord.gg/143aimclub" Foreground="#92929D" FontSize="10" VerticalAlignment="Center"/>
+       <TextBlock Text="discord.gg/143aimclub" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" FontSize="10" VerticalAlignment="Center"/>
       </StackPanel>
      </Button>
     </StackPanel>
@@ -64,30 +64,32 @@
       <TextBlock x:Name="RangeCount" Foreground="#92929D" FontSize="10" Margin="0,6,0,8"/>
       <TextBlock Text="BLOCK applies these ranges to Overwatch only." TextWrapping="Wrap" Foreground="#92929D" FontSize="11" Margin="0,0,0,8"/>
       <Button Content="Check rules" Click="CheckRules" Margin="0,4"/>
-      <TextBlock x:Name="RulesResult" TextWrapping="Wrap" Foreground="#92929D" FontSize="11" Margin="0,5"/>
+      <TextBlock x:Name="RulesResult" Visibility="Collapsed" TextWrapping="Wrap" Foreground="#92929D" FontSize="11" Margin="0,5"/>
       <Button x:Name="RepairButton" Content="Repair" Click="RetryMode" Visibility="Collapsed" Background="#60519B" Margin="0,4"/>
       <Button Content="Open Windows Firewall ↗" Click="OpenFirewall" Style="{StaticResource TextAction}"/>
       <Button Content="Remove firewall rules" Click="RemoveRules" Style="{StaticResource DestructiveAction}"/>
       <TextBlock Text="DIAGNOSTICS" Foreground="#92929D" Margin="0,19,0,8" FontSize="10"/>
       <Button x:Name="DetectButton" Content="Detect current server" Click="DetectServer" Margin="0,4"/>
+      <TextBlock x:Name="DiagnosticHeading" Visibility="Collapsed" FontSize="10" FontWeight="SemiBold" Margin="0,12,0,6"/>
+      <TextBlock x:Name="DiagnosticDetails" Visibility="Collapsed" TextWrapping="Wrap" FontSize="12" LineHeight="18" Margin="0,0,0,4"/>
       <TextBlock x:Name="DiagnosticText" Text="Detect during a match. Nothing is blocked or changed." TextWrapping="Wrap" Foreground="#92929D" FontSize="11" Margin="0,6"/>
       <Button x:Name="CopyDiagnosticButton" Content="Copy server info" Click="CopyDiagnostic" Style="{StaticResource TextAction}" Visibility="Collapsed"/>
       <TextBlock Text="UPDATES" Foreground="#92929D" Margin="0,19,0,8" FontSize="10"/>
-      <TextBlock Text="Version 1.1.0" FontSize="11"/>
+      <TextBlock Text="Version 1.1.2" FontSize="11"/>
       <CheckBox x:Name="AutomaticUpdatesToggle" Content="Automatically check for updates" Click="AutomaticUpdatesChanged" FontSize="11"/>
       <TextBlock x:Name="UpdateStatus" Text="Not checked yet" TextWrapping="Wrap" Foreground="#92929D" FontSize="11" Margin="0,6"/>
       <Button x:Name="CheckUpdatesButton" Content="Check now" Click="CheckUpdates" Margin="0,4"/>
       <Button x:Name="InstallUpdateButton" Content="Update" Click="InstallUpdate" Visibility="Collapsed" Background="#60519B" Margin="0,4"/>
       <TextBlock Text="ABOUT" Foreground="#92929D" Margin="0,19,0,8" FontSize="10"/>
       <TextBlock Text="143 OW Switch"/>
-      <TextBlock Text="Version 1.1.0 · 143 Aim Club" Foreground="#92929D" FontSize="11" Margin="0,5,0,0"/>
+      <TextBlock Text="Version 1.1.2 · 143 Aim Club" Foreground="#92929D" FontSize="11" Margin="0,5,0,0"/>
       <TextBlock Text="No telemetry&#10;No game integration" Foreground="#92929D" FontSize="11" Margin="0,5,0,8"/>
-      <Button Click="OpenDiscord" Background="Transparent" HorizontalAlignment="Left" Padding="0,5" ToolTip="Join 143 Aim Club on Discord">
+      <Button Click="OpenDiscord" Style="{StaticResource DiscordAction}" ToolTip="Join 143 Aim Club on Discord">
        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
         <Viewbox Width="14" Height="14" Margin="0,0,6,0">
-         <Path Fill="#92929D" Stretch="Uniform" Data="M20.317,4.37 C18.846,3.69 17.264,3.2 15.432,2.855 C15.22,3.23 14.987,3.72 14.823,4.104 C12.978,3.828 11.143,3.828 9.336,4.104 C9.172,3.711 8.941,3.23 8.72,2.855 C6.889,3.2 5.306,3.69 3.835,4.37 C0.718,8.758 -0.135,13.292 0.283,17.77 C0.285,17.792 0.296,17.812 0.314,17.826 C2.367,19.334 4.355,20.249 6.307,20.856 C6.344,20.867 6.383,20.856 6.407,20.828 C6.869,20.197 7.28,19.532 7.633,18.833 C7.654,18.792 7.635,18.743 7.592,18.727 C6.94,18.479 6.318,18.177 5.72,17.834 C5.669,17.805 5.665,17.735 5.713,17.706 C5.839,17.612 5.965,17.514 6.085,17.415 C6.107,17.397 6.138,17.393 6.163,17.405 C10.091,19.198 14.343,19.198 18.224,17.405 C18.25,17.393 18.281,17.397 18.302,17.414 C18.422,17.513 18.548,17.612 18.675,17.706 C18.723,17.735 18.719,17.805 18.668,17.833 C18.071,18.176 17.449,18.477 16.795,18.725 C16.753,18.741 16.734,18.79 16.755,18.832 C17.115,19.53 17.527,20.195 17.98,20.825 C18.004,20.857 18.045,20.868 18.083,20.854 C20.044,20.247 22.033,19.332 24.086,17.825 C24.104,17.812 24.115,17.792 24.117,17.77 C24.617,12.593 23.279,8.096 20.568,4.436 C20.554,4.417 20.337,4.379 20.317,4.37 Z M8.02,15.331 C6.838,15.331 5.863,14.245 5.863,12.912 C5.863,11.579 6.819,10.493 8.02,10.493 C9.231,10.493 10.196,11.589 10.177,12.912 C10.177,14.245 9.222,15.331 8.02,15.331 Z M15.995,15.331 C14.812,15.331 13.838,14.245 13.838,12.912 C13.838,11.579 14.793,10.493 15.995,10.493 C17.205,10.493 18.17,11.589 18.151,12.912 C18.151,14.245 17.205,15.331 15.995,15.331 Z"/>
+         <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" SnapsToDevicePixels="True" Stretch="Uniform" Data="M20.317,4.37 C18.846,3.69 17.264,3.2 15.432,2.855 C15.22,3.23 14.987,3.72 14.823,4.104 C12.978,3.828 11.143,3.828 9.336,4.104 C9.172,3.711 8.941,3.23 8.72,2.855 C6.889,3.2 5.306,3.69 3.835,4.37 C0.718,8.758 -0.135,13.292 0.283,17.77 C0.285,17.792 0.296,17.812 0.314,17.826 C2.367,19.334 4.355,20.249 6.307,20.856 C6.344,20.867 6.383,20.856 6.407,20.828 C6.869,20.197 7.28,19.532 7.633,18.833 C7.654,18.792 7.635,18.743 7.592,18.727 C6.94,18.479 6.318,18.177 5.72,17.834 C5.669,17.805 5.665,17.735 5.713,17.706 C5.839,17.612 5.965,17.514 6.085,17.415 C6.107,17.397 6.138,17.393 6.163,17.405 C10.091,19.198 14.343,19.198 18.224,17.405 C18.25,17.393 18.281,17.397 18.302,17.414 C18.422,17.513 18.548,17.612 18.675,17.706 C18.723,17.735 18.719,17.805 18.668,17.833 C18.071,18.176 17.449,18.477 16.795,18.725 C16.753,18.741 16.734,18.79 16.755,18.832 C17.115,19.53 17.527,20.195 17.98,20.825 C18.004,20.857 18.045,20.868 18.083,20.854 C20.044,20.247 22.033,19.332 24.086,17.825 C24.104,17.812 24.115,17.792 24.117,17.77 C24.617,12.593 23.279,8.096 20.568,4.436 C20.554,4.417 20.337,4.379 20.317,4.37 Z M8.02,15.331 C6.838,15.331 5.863,14.245 5.863,12.912 C5.863,11.579 6.819,10.493 8.02,10.493 C9.231,10.493 10.196,11.589 10.177,12.912 C10.177,14.245 9.222,15.331 8.02,15.331 Z M15.995,15.331 C14.812,15.331 13.838,14.245 13.838,12.912 C13.838,11.579 14.793,10.493 15.995,10.493 C17.205,10.493 18.17,11.589 18.151,12.912 C18.151,14.245 17.205,15.331 15.995,15.331 Z"/>
         </Viewbox>
-        <TextBlock Text="discord.gg/143aimclub" Foreground="#92929D" FontSize="10" VerticalAlignment="Center"/>
+        <TextBlock Text="discord.gg/143aimclub" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" FontSize="10" VerticalAlignment="Center"/>
        </StackPanel>
       </Button>
      </StackPanel>

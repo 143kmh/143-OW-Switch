@@ -4,7 +4,7 @@
     <UseWPF>true</UseWPF><UseWindowsForms>true</UseWindowsForms><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest><ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <AssemblyName>143OWSwitch</AssemblyName><RootNamespace>Excluder.App</RootNamespace>
-    <Version>1.1.1</Version><Company>143 Aim Club</Company><Product>143 OW Switch</Product>
+    <Version>1.1.2</Version><Company>143 Aim Club</Company><Product>143 OW Switch</Product>
     <PublishSingleFile>true</PublishSingleFile><SelfContained>true</SelfContained><RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract><EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <DebugType>none</DebugType><DebugSymbols>false</DebugSymbols>

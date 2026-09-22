@@ -19,6 +19,12 @@
     <Style x:Key="TextAction" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
       <Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="#92929D"/>
       <Setter Property="HorizontalAlignment" Value="Left"/><Setter Property="Padding" Value="0,9"/>
+      <Style.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter Property="Foreground" Value="#B6A4F0"/></Trigger></Style.Triggers>
+    </Style>
+    <Style x:Key="DiscordAction" TargetType="Button" BasedOn="{StaticResource TextAction}">
+      <Setter Property="FontSize" Value="10"/><Setter Property="Padding" Value="0,3"/>
+      <Setter Property="Margin" Value="0,2,0,0"/>
+      <Setter Property="AutomationProperties.Name" Value="Join 143 Aim Club on Discord"/>
     </Style>
     <Style x:Key="DestructiveAction" TargetType="Button" BasedOn="{StaticResource TextAction}">
       <Setter Property="Foreground" Value="#B59C9F"/>
@@ -47,6 +53,7 @@
       <Setter Property="Margin" Value="5,0,0,0"/>
       <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ScrollBar">
         <Grid Background="Transparent" Width="{TemplateBinding Width}">
+          <Border Background="#202026" CornerRadius="3"/>
           <Track x:Name="PART_Track" IsDirectionReversed="True" Orientation="Vertical">
             <Track.DecreaseRepeatButton>
               <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}" Opacity="0" IsTabStop="False"/>
@@ -55,7 +62,7 @@
               <Thumb MinHeight="24">
                 <Thumb.Template>
                   <ControlTemplate TargetType="Thumb">
-                    <Border x:Name="ThumbSurface" Background="#60519B" CornerRadius="3" Opacity="0.82"/>
+                    <Border x:Name="ThumbSurface" Background="#60519B" CornerRadius="3"/>
                     <ControlTemplate.Triggers>
                       <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ThumbSurface" Property="Background" Value="#7362B2"/><Setter TargetName="ThumbSurface" Property="Opacity" Value="1"/></Trigger>
                       <Trigger Property="IsDragging" Value="True"><Setter TargetName="ThumbSurface" Property="Background" Value="#8371C5"/><Setter TargetName="ThumbSurface" Property="Opacity" Value="1"/></Trigger>

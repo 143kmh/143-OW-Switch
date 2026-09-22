@@ -9,7 +9,7 @@ namespace Excluder.App;
 public static class RemoteServices
 {
     public const string Repository = "143kmh/143-OW-Switch";
-    public const string CurrentVersion = "1.1.1";
+    public const string CurrentVersion = "1.1.2";
     private static readonly HttpClient Client = CreateClient();
     private static HttpClient CreateClient()
     {

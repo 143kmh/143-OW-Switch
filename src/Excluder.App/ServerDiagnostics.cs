@@ -10,12 +10,6 @@ using Excluder.Core;
 
 namespace Excluder.App;
 
-public sealed record EndpointSample(IPAddress Address, string Protocol, long Bytes, int Events, bool TableOnly = false);
-public sealed record MatchDiagnostic(EndpointSample? Candidate, string Server, string Provider, string Region, string Location, string Note, DateTimeOffset Detected)
-{
-    public string CopyText => $"IP: {Candidate?.Address}\nServer: {Server}\nProtocol: {Candidate?.Protocol}\nRegion: {Region}\nProvider: {Provider}\nLocation: {Location}\nDetected: {Detected:O}\n{Note}";
-}
-
 public static class ServerDiagnostics
 {
     private static TraceEventSession? activeSession;
@@ -74,14 +68,12 @@ public static class ServerDiagnostics
         token.ThrowIfCancellationRequested();
         if (samples.Count == 0)
             foreach (var sample in ReadTcpTable(pids)) samples.TryAdd("TCP:" + sample.Address, sample);
-        var candidate = samples.Values.OrderByDescending(s => s.Protocol == "UDP")
-            .ThenByDescending(s => s.Events).ThenByDescending(s => s.Bytes).FirstOrDefault();
+        var candidate = EndpointClassification.Select(samples.Values);
         if (candidate == null) return Empty(traceError == null ? "No active remote endpoint found. Detect while a match is running." : "Network tracing unavailable; no TCP candidate found. See log.");
         var definition = catalog.Servers.FirstOrDefault(s => s.Ranges.Any(r => Cidr.Parse(r).Contains(candidate.Address)));
         var cloud = await LookupCloud(candidate.Address, token);
-        var note = candidate.Protocol == "UDP" ? "Likely match endpoint · 5-second activity sample; not guaranteed." :
-            "TCP candidate only. This may be login/chat; UDP match endpoint was not observed.";
-        if (traceError != null) note += " Network tracing unavailable; connection-table fallback.";
+        var note = traceError == null ? "" : candidate.TableOnly ?
+            "Network tracing unavailable; showing a connection-table endpoint." : "Network trace incomplete.";
         return new(candidate, definition?.Name ?? "Unconfirmed server", cloud.Provider, cloud.Region,
             definition?.Location ?? (cloud.Region == "europe-north1" ? "Finland" : "Region unknown"), note, DateTimeOffset.Now);
     }

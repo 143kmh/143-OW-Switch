@@ -97,8 +97,8 @@ public partial class MainWindow : Window
         var menu = new Forms.ContextMenuStrip { BackColor = System.Drawing.Color.FromArgb(24,24,28), ForeColor = System.Drawing.Color.White, ShowImageMargin = false };
         menu.Items.Add(new Forms.ToolStripMenuItem("143 OW Switch") { Enabled = false });
         menu.Items.Add(new Forms.ToolStripSeparator());
-        soloItem = new Forms.ToolStripMenuItem("SOLO", null, async (_, _) => await ApplyMode(Mode.Solo));
-        partyItem = new Forms.ToolStripMenuItem("PARTY", null, async (_, _) => await ApplyMode(Mode.Party));
+        soloItem = new Forms.ToolStripMenuItem("BLOCK", null, async (_, _) => await ApplyMode(Mode.Solo));
+        partyItem = new Forms.ToolStripMenuItem("UNBLOCK", null, async (_, _) => await ApplyMode(Mode.Party));
         menu.Items.Add(soloItem); menu.Items.Add(partyItem); menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add("Open", null, (_, _) => Reveal());
         startupItem = new Forms.ToolStripMenuItem("Run on startup", null, (_, _) => SetStartup(!settings.RunOnStartup));
@@ -137,8 +137,8 @@ public partial class MainWindow : Window
             Log.Write("Mode changed: " + mode);
             if (notify && settings.Notifications && tray != null)
                 tray.ShowBalloonTip(2000, "143 OW Switch", active || mode == Mode.Party
-                    ? mode == Mode.Solo ? "SOLO enabled. GEN1 is blocked." : "PARTY enabled. Normal matchmaking restored."
-                    : "SOLO rules saved, but Windows Firewall or local policy is inactive.", Forms.ToolTipIcon.Info);
+                    ? mode == Mode.Solo ? "BLOCK enabled. GEN1 is blocked." : "UNBLOCK enabled. Normal matchmaking restored."
+                    : "BLOCK rules saved, but Windows Firewall or local policy is inactive.", Forms.ToolTipIcon.Info);
             return true;
         }
         catch (Exception e)
@@ -167,7 +167,7 @@ public partial class MainWindow : Window
         bool solo = settings.Mode == Mode.Solo;
         Status.Text = !verified ? "CHECK RULES" : solo && !active ? "NOT ACTIVE" : solo ? "BLOCKED" : "AVAILABLE";
         Subtitle.Text = !verified ? "Rules differ from your saved mode" : solo ? active ? "Finland server excluded" : "Enable Windows Firewall to block GEN1" : "Normal matchmaking";
-        Health.Text = !verified ? "Click SOLO or PARTY to repair" : !active ? "Firewall off or managed by policy" : solo ? "Firewall active" : "App blocking disabled";
+        Health.Text = !verified ? "Click BLOCK or UNBLOCK to repair" : !active ? "Firewall off or managed by policy" : solo ? "Firewall active" : "App blocking disabled";
         if (!GameFound) { Status.Text = "LOCATE GAME"; Subtitle.Text = "Overwatch executable not found."; Health.Text = "Select Overwatch.exe in Settings"; }
 #if DEBUG
         if (App.Preview) Health.Text = "PREVIEW · no system changes";
@@ -177,7 +177,7 @@ public partial class MainWindow : Window
         if (tray != null)
         {
             tray.Icon = !verified || (solo && !active) ? unknownIcon : solo ? soloIcon : partyIcon;
-            tray.Text = "143 OW Switch — " + (!verified ? "CHECK RULES" : solo && !active ? "NOT ACTIVE" : solo ? "SOLO" : "PARTY");
+            tray.Text = "143 OW Switch — " + (!verified ? "CHECK RULES" : solo && !active ? "NOT ACTIVE" : solo ? "BLOCK" : "UNBLOCK");
             soloItem!.Checked = verified && solo; partyItem!.Checked = verified && !solo;
         }
     }

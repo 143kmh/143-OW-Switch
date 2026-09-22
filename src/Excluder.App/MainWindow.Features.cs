@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -117,6 +118,11 @@ public partial class MainWindow
         if (diagnostic?.Candidate == null) return;
         try { Clipboard.SetText(diagnostic.CopyText); }
         catch (Exception error) { Log.Write(error.ToString()); DiagnosticText.Text += "\nCouldn't copy to clipboard."; }
+    }
+    private void OpenDiscord(object sender, RoutedEventArgs e)
+    {
+        try { Process.Start(new ProcessStartInfo("https://discord.gg/143aimclub") { UseShellExecute = true }); }
+        catch (Exception error) { ShowError("Couldn't open the 143 Aim Club Discord invite.\n" + error.Message, error); }
     }
     private bool ConfirmRemoval()
     {
